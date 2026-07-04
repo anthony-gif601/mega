@@ -207,6 +207,8 @@
     <h2 style="font-size:20px;color:#cfe8ff;">🍀 A Megatouch classic, reborn 🍀</h2>
     <p>Chain charms of the same style. Each new charm must be reachable from the last in <b>two or less turns</b>. Longer chains score far more!</p>
     <button class="bigbtn" id="playBtn">▶ &nbsp;PLAY</button>
+    <p id="nojs" style="color:#ffd0c0;font-size:12px;">⚠️ If PLAY does nothing, this viewer is blocking scripts.
+    Save the file and open it in <b>Safari</b>, or use the web link instead.</p>
   </div>
 </div>
 
@@ -240,7 +242,21 @@
 
 <script>
 'use strict';
+// surface any script failure on-screen so it can be reported from a phone
+window.onerror = function(msg, src, line){
+  var d = document.getElementById('errbar');
+  if (!d) {
+    d = document.createElement('div'); d.id = 'errbar';
+    d.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99;background:#b01818;color:#fff;' +
+      'font:700 12px/1.4 -apple-system,sans-serif;padding:8px 12px;word-break:break-all;';
+    document.body.appendChild(d);
+  }
+  d.textContent = '⚠️ ' + msg + ' @' + line;
+};
 (function(){
+// script is alive — hide the "scripts blocked" warning
+var nojs = document.getElementById('nojs');
+if (nojs) nojs.style.display = 'none';
 // ============================================================ constants
 var N = 9;                                 // 9x9 board
 var SEC_PER_BALL = 5, MAX_BALLS = 30;      // 150s of play, +10 balls per cleared round
