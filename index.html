@@ -25,20 +25,17 @@
     position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
     padding:calc(env(safe-area-inset-top,0px) + 4px) calc(env(safe-area-inset-right,0px) + 4px)
             calc(env(safe-area-inset-bottom,0px) + 4px) calc(env(safe-area-inset-left,0px) + 4px);
-    background:#061107;
+    background:#000;
   }
-  /* the whole game lives in a 4:3 "machine screen" with a gold bezel, letterboxed on wide displays */
+  /* the whole game lives in a 4:3 "machine screen", letterboxed on wide displays */
   #machine {
-    display:flex; gap:5px; aspect-ratio:4/3;
+    display:flex; gap:8px; aspect-ratio:4/3;
     width:min(100%, calc((100dvh - 14px) * 1.3333));
     max-height:100%;
-    border:3px solid #cfc078; border-radius:10px; padding:4px;
-    background:linear-gradient(180deg,#8a8148,#5d5730);
-    box-shadow:0 0 40px rgba(0,0,0,.8), inset 0 0 6px rgba(255,250,210,.5);
   }
   #boardcol { flex:1 1 auto; min-width:0; min-height:0; position:relative;
-              border-radius:8px; overflow:hidden;
-              box-shadow:inset 0 0 24px rgba(0,30,0,.35); }
+              border:3px solid #efe9d8; border-radius:16px; overflow:hidden;
+              box-shadow:0 0 24px rgba(0,0,0,.9), inset 0 0 18px rgba(0,25,0,.4); }
   canvas#cv { display:block; touch-action:none; position:absolute; inset:0; }
   /* ---- End Chain button (floats over the grass, like the machine) ---- */
   #endChain {
@@ -47,26 +44,26 @@
     font-family:inherit; font-size:17px; font-weight:800; color:#fff;
     text-shadow:0 1px 2px rgba(0,60,0,.8); letter-spacing:.5px;
     padding:7px 44px; border-radius:999px; white-space:nowrap;
-    background:linear-gradient(180deg,#8fe05a 0%,#3aa825 45%,#1e7a12 55%,#4cc233 100%);
-    box-shadow:0 3px 8px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.5);
+    background:linear-gradient(180deg,#7ce048 0%,#2a9e18 45%,#137008 55%,#3cb828 100%);
+    box-shadow:0 3px 8px rgba(0,0,0,.55), inset 0 2px 3px rgba(255,255,255,.5), 0 0 0 2px rgba(10,50,5,.55);
   }
   #endChain:active { transform:translateX(-50%) scale(.95); }
   #endChain.dim { filter:grayscale(.55) brightness(.75); }
   /* ---- side panel ---- */
   #panel {
-    flex:0 0 clamp(186px, 23vw, 250px); display:flex; flex-direction:column; gap:7px;
-    border:4px solid #f2ecc0; border-radius:16px; padding:9px 9px 10px;
+    flex:0 0 clamp(186px, 24vw, 260px); display:flex; flex-direction:column; gap:7px;
+    border:3px solid #fbfbf6; border-radius:18px; padding:10px 9px;
     background:
-      radial-gradient(140% 60% at 50% 0%, #c2e484 0%, #94ca60 30%, #5aa63e 70%, #418c30 100%);
-    box-shadow:0 4px 18px rgba(0,0,0,.6), inset 0 0 0 2px rgba(70,130,35,.55), 0 0 0 1px rgba(0,0,0,.35);
+      radial-gradient(150% 70% at 50% 0%, #bcdc86 0%, #9ccc68 35%, #79b452 70%, #62a244 100%);
+    box-shadow:0 0 24px rgba(0,0,0,.9), inset 0 0 0 2px rgba(80,140,45,.4);
     overflow:hidden; position:relative;
   }
-  #panel::before { /* clover watermark */
-    content:""; position:absolute; inset:0; opacity:.16; pointer-events:none;
-    background-image:radial-gradient(circle 15px at 20px 15px, #1d6612 97%, transparent),
-                     radial-gradient(circle 15px at 50px 15px, #1d6612 97%, transparent),
-                     radial-gradient(circle 15px at 35px 41px, #1d6612 97%, transparent);
-    background-size:104px 104px;
+  #panel::before { /* big pale clover watermark */
+    content:""; position:absolute; inset:0; opacity:.18; pointer-events:none;
+    background-image:radial-gradient(circle 22px at 30px 22px, #55953a 97%, transparent),
+                     radial-gradient(circle 22px at 74px 22px, #55953a 97%, transparent),
+                     radial-gradient(circle 22px at 52px 60px, #55953a 97%, transparent);
+    background-size:150px 150px;
   }
   #panel > * { position:relative; }
   #topbtns { display:flex; justify-content:space-between; padding:0 4px; }
@@ -77,8 +74,12 @@
     box-shadow:0 2px 5px rgba(0,0,0,.45), inset 0 2px 2px rgba(255,255,255,.45);
   }
   .rbtn:active { transform:scale(.92); }
-  #helpBtn { background:radial-gradient(circle at 35% 30%, #6dd83f, #1f7a12); }
-  #quitBtn { background:radial-gradient(circle at 35% 30%, #f0a060, #b04818); }
+  #helpBtn { background:radial-gradient(circle at 35% 30%, #7ce048, #1d7a10);
+             color:#d8ffc8; box-shadow:0 2px 5px rgba(0,0,0,.45), inset 0 0 0 3px rgba(15,80,10,.6),
+             inset 0 2px 2px rgba(255,255,255,.4); }
+  #quitBtn { background:radial-gradient(circle at 35% 30%, #b8845a, #6a3a16);
+             color:#ffd4d4; box-shadow:0 2px 5px rgba(0,0,0,.45), inset 0 0 0 3px rgba(60,28,6,.6),
+             inset 0 2px 2px rgba(255,255,255,.35); }
   .banner {
     border-radius:9px; text-align:center; padding:3px 6px 4px;
     border:2px solid rgba(255,255,255,.65);
@@ -89,8 +90,8 @@
   #hiBanner .n { font-size:13px; color:#ffd94a; font-weight:900; letter-spacing:1px; line-height:1.05; }
   #hiBanner .v { font-size:17px; font-weight:900; color:#fff; line-height:1.1;
                  font-variant-numeric:tabular-nums; text-shadow:0 1px 2px rgba(90,0,0,.7); }
-  #linkBanner { background:linear-gradient(180deg,#ffb040,#e07818 60%,#f09030);
-                font-size:14px; font-weight:900; text-shadow:0 1px 2px rgba(90,40,0,.7); }
+  #linkBanner { background:linear-gradient(180deg,#b47a42,#8a5426 60%,#9c6432);
+                font-size:14px; font-weight:900; text-shadow:0 1px 2px rgba(60,30,0,.8); }
   .pill {
     display:flex; align-items:center; gap:6px; height:34px; padding:0 4px;
   }
@@ -115,13 +116,14 @@
                 visibility:hidden; }
   #yourLink { text-align:center; font-size:13.5px; font-weight:800; text-shadow:0 1px 2px rgba(0,60,0,.6); }
   #roundTitle {
-    text-align:center; font-size:26px; font-weight:900; letter-spacing:2px; color:#fffbe8;
-    text-shadow:0 2px 3px rgba(20,80,10,.8); margin-top:auto;
+    text-align:center; font-size:27px; font-weight:900; letter-spacing:3px; color:#fdf6e0;
+    font-family:"Cooper Black","Chalkboard SE","Arial Rounded MT Bold",Georgia,serif;
+    text-shadow:0 2px 3px rgba(20,80,10,.75); margin-top:auto;
   }
   #tray {
-    background:rgba(30,40,30,.72); border-radius:6px; padding:5px 6px;
+    background:rgba(62,74,52,.68); border-radius:3px; padding:5px 6px;
     display:flex; flex-wrap:wrap; gap:3px; justify-content:flex-start;
-    box-shadow:inset 0 2px 5px rgba(0,0,0,.6); min-height:47px; align-content:center;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.55); min-height:47px; align-content:center;
   }
   .ball { width:15px; height:15px; border-radius:50%;
           box-shadow:inset -3px -4px 4px rgba(0,0,0,.5), inset 2px 2px 3px rgba(255,255,255,.7),
@@ -129,11 +131,11 @@
   .ball.g { background:#3fce2f; } .ball.o { background:#f09020; } .ball.r { background:#e83020; }
   .ball.gone { visibility:hidden; }
   #takeScore {
-    appearance:none; cursor:pointer; font-family:inherit; border-radius:12px;
-    border:2px solid #fff; padding:10px 8px; font-size:17px; font-weight:900; color:#fff;
+    appearance:none; cursor:pointer; font-family:inherit; border-radius:14px;
+    border:3px solid #fff; padding:11px 8px; font-size:17px; font-weight:900; color:#fff;
     letter-spacing:.5px; text-shadow:0 1px 3px rgba(0,30,90,.8);
-    background:linear-gradient(180deg,#78c8ff 0%,#2878e8 45%,#1050b8 55%,#3888e8 100%);
-    box-shadow:0 3px 8px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.5);
+    background:linear-gradient(180deg,#88ccff 0%,#3878e0 45%,#1448a8 60%,#3070d0 100%);
+    box-shadow:0 3px 8px rgba(0,0,0,.55), inset 0 2px 3px rgba(255,255,255,.5), 0 0 0 1px rgba(0,20,60,.5);
   }
   #takeScore:active { transform:scale(.96); }
   /* ---- overlays ---- */
@@ -243,7 +245,7 @@
     <button class="bigbtn" id="playBtn">▶ &nbsp;PLAY</button>
     <p id="nojs" style="color:#ffd0c0;font-size:12px;">⚠️ If PLAY does nothing, this viewer is blocking scripts.
     Save the file and open it in <b>Safari</b>, or use the web link instead.</p>
-    <p style="opacity:.75;font-size:11px;margin-top:6px;">build 12 · 4:3 machine screen</p>
+    <p style="opacity:.75;font-size:11px;margin-top:6px;">build 13 · high-res visual match</p>
   </div>
 </div>
 
@@ -297,15 +299,15 @@ if (nojs) nojs.style.display = 'none';
 var N = 9;                                 // 9x9 board
 var SEC_PER_BALL = 5, MAX_BALLS = 30;      // 150s of play, +10 balls per cleared round
 var STYLES = [
-  { name:'orb',   main:'#7dabee', light:'#e2f1ff', dark:'#3d62be' },
-  { name:'pent',  main:'#84d266', light:'#ddf6c8', dark:'#38982f' },
-  { name:'sq',    main:'#f292a6', light:'#ffdde4', dark:'#bc405f' },
-  { name:'hex',   main:'#c286dc', light:'#eed7f8', dark:'#8149a2' },
+  { name:'orb',   main:'#a9c2f0', light:'#e9f0ff', dark:'#6f8cd0' },
+  { name:'pent',  main:'#9fd694', light:'#e4f7dc', dark:'#5aa04e' },
+  { name:'sq',    main:'#e79b9b', light:'#f9dcd8', dark:'#b85c5c' },
+  { name:'hex',   main:'#d383e3', light:'#f3d2f7', dark:'#9a44b0' },
   { name:'star',  main:'#f7cc3c', light:'#ffefa2', dark:'#bb860e' },
   { name:'heart', main:'#f79232', light:'#ffd8a4', dark:'#bb5210' }
 ];
 var GHOST = { main:'#f6f6f4', light:'#ffffff', dark:'#b0b0c4' };
-var SWITCH = { main:'#68d848', light:'#d8ffc0', dark:'#2f9818' };
+var SWITCH = { main:'#f0dc82', light:'#fdf6cc', dark:'#c0a030' };
 
 // ============================================================ dom
 var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -400,8 +402,8 @@ function now(){ return performance.now(); }
 function resize(){
   var col = $('boardcol');
   gw = col.clientWidth; gh = col.clientHeight;
-  // keep at least ~0.6 cell of grass on every side so outside-the-board chains stay visible
-  cell = Math.floor(Math.min(gw / (N + 1.25), (gh - 22) / (N + 1.25), 86));
+  // roomy grass ring (dirt margin + lawn) like the machine; outside chains render in it too
+  cell = Math.floor(Math.min(gw / (N + 2.2), (gh - 20) / (N + 2.2), 86));
   boardPx = cell * N;
   ox = Math.round((gw - boardPx) / 2);
   oy = Math.round((gh - boardPx - 20) / 2);   // ride high: End Chain overlaps the grass below
@@ -422,76 +424,81 @@ function buildBackground(){
   var g = bgCanvas.getContext('2d');
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   var rnd = mulberry(12345);
-  // grass fills the whole screen — bright, sunlit
+  // rich dark lawn
   var gr = g.createLinearGradient(0, 0, 0, gh);
-  gr.addColorStop(0, '#6fce39'); gr.addColorStop(.5, '#4fb027'); gr.addColorStop(1, '#3c9a1e');
+  gr.addColorStop(0, '#4aa022'); gr.addColorStop(.5, '#3a8e1a'); gr.addColorStop(1, '#2e7c14');
   g.fillStyle = gr; g.fillRect(0, 0, gw, gh);
   var i, x, y;
-  var blades = Math.round(gw * gh / 110);    // grass blades
+  var blades = Math.round(gw * gh / 70);     // dense grass blades
   for (i = 0; i < blades; i++) {
     x = rnd() * gw; y = rnd() * gh;
-    g.strokeStyle = rnd() < .5 ? 'rgba(24,100,10,.28)' : 'rgba(170,240,100,.26)';
+    g.strokeStyle = rnd() < .5 ? 'rgba(15,70,5,.32)' : 'rgba(130,205,70,.30)';
     g.lineWidth = 1.2;
-    g.beginPath(); g.moveTo(x, y); g.lineTo(x + (rnd() * 5 - 2.5), y - 4 - rnd() * 6); g.stroke();
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + (rnd() * 5 - 2.5), y - 4 - rnd() * 7); g.stroke();
   }
-  // clovers scattered across the grass, never over the dirt
-  var placed = 0, guard = 0, margin = cell * .58;
-  while (placed < 120 && guard < 2000) {
+  // clovers scattered on the lawn ring, never over the dirt
+  var placed = 0, guard = 0, margin = cell * .95;
+  while (placed < 90 && guard < 2200) {
     guard++;
     x = rnd() * gw; y = rnd() * gh;
     if (x > ox - margin && x < ox + boardPx + margin &&
         y > oy - margin && y < oy + boardPx + margin) continue;
-    drawClover(g, x, y, cell * (.15 + rnd() * .17), rnd() * 6.28, rnd() < .25 ? 4 : 3, rnd);
+    drawClover(g, x, y, cell * (.2 + rnd() * .2), rnd() * 6.28, rnd() < .3 ? 4 : 3, rnd);
     placed++;
   }
-  // gentle vignette for depth
-  var vg = g.createRadialGradient(gw / 2, gh / 2, Math.min(gw, gh) * .35, gw / 2, gh / 2, Math.max(gw, gh) * .8);
-  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,40,0,.30)');
-  g.fillStyle = vg; g.fillRect(0, 0, gw, gh);
-  // dark soil trench ring around the dirt bed
-  var pad = cell * .16;
+  // deep mottled dirt bed with a soft shadowed edge (no hard trench line)
+  var pad = cell * .52;
+  var dx0 = ox - pad, dy0 = oy - pad, dw = boardPx + pad * 2;
   g.save();
-  g.shadowColor = 'rgba(0,25,0,.55)'; g.shadowBlur = 16; g.shadowOffsetY = 5;
-  var tg = g.createLinearGradient(0, oy - pad * 2.8, 0, oy + boardPx + pad * 2.8);
-  tg.addColorStop(0, '#6b4423'); tg.addColorStop(.5, '#553419'); tg.addColorStop(1, '#3f2610');
-  g.fillStyle = tg;
-  rrect(g, ox - pad * 2.8, oy - pad * 2.8, boardPx + pad * 5.6, boardPx + pad * 5.6, 14); g.fill();
-  g.restore();
-  // gravel dirt bed
-  var dg = g.createLinearGradient(0, oy, 0, oy + boardPx);
-  dg.addColorStop(0, '#a59579'); dg.addColorStop(.5, '#98876b'); dg.addColorStop(1, '#87765a');
+  g.shadowColor = 'rgba(0,15,0,.75)'; g.shadowBlur = cell * .5;
+  var dg = g.createLinearGradient(0, dy0, 0, dy0 + dw);
+  dg.addColorStop(0, '#7c5c38'); dg.addColorStop(.45, '#6e4e2c'); dg.addColorStop(1, '#5e4022');
   g.fillStyle = dg;
-  rrect(g, ox - pad * .6, oy - pad * .6, boardPx + pad * 1.2, boardPx + pad * 1.2, 6); g.fill();
-  var specks = Math.round(boardPx * boardPx / 34);
-  for (i = 0; i < specks; i++) {             // gravel speckles
-    x = ox + rnd() * boardPx; y = oy + rnd() * boardPx;
-    var sz = 1 + rnd() * 2.2;
-    g.fillStyle = rnd() < .45 ? 'rgba(70,50,28,.22)' : rnd() < .5 ? 'rgba(240,228,200,.20)' : 'rgba(150,130,100,.25)';
-    g.beginPath(); g.arc(x, y, sz / 2, 0, 6.29); g.fill();
+  rrect(g, dx0, dy0, dw, dw, cell * .3); g.fill();
+  g.restore();
+  g.save();
+  rrect(g, dx0, dy0, dw, dw, cell * .3); g.clip();
+  for (i = 0; i < 260; i++) {                // soft mottling blotches
+    x = dx0 + rnd() * dw; y = dy0 + rnd() * dw;
+    g.fillStyle = rnd() < .5 ? 'rgba(40,24,8,.07)' : 'rgba(180,150,110,.06)';
+    g.beginPath(); g.ellipse(x, y, 4 + rnd() * cell * .4, 3 + rnd() * cell * .3, rnd() * 3, 0, 6.29); g.fill();
   }
-  // the signature dashed-white cell lattice
-  g.strokeStyle = 'rgba(255,255,255,.72)';
-  g.lineWidth = Math.max(1.5, cell * .04);
-  g.setLineDash([cell * .13, cell * .085]);
-  g.lineDashOffset = cell * .05;
-  for (var k = 0; k <= N; k++) {
-    g.beginPath(); g.moveTo(ox + k * cell, oy - 3); g.lineTo(ox + k * cell, oy + boardPx + 3); g.stroke();
-    g.beginPath(); g.moveTo(ox - 3, oy + k * cell); g.lineTo(ox + boardPx + 3, oy + k * cell); g.stroke();
+  var specks = Math.round(dw * dw / 30);     // fine grain
+  for (i = 0; i < specks; i++) {
+    x = dx0 + rnd() * dw; y = dy0 + rnd() * dw;
+    g.fillStyle = rnd() < .5 ? 'rgba(35,20,6,.18)' : 'rgba(200,175,135,.13)';
+    g.fillRect(x, y, 1.4, 1.4);
   }
-  g.setLineDash([]);
-  // chunky wooden crosses over the interior intersections
-  var arm = cell * .34, w = cell * .16;
-  for (var r = 1; r < N; r++) for (var c = 1; c < N; c++) {
+  // dark inner shadow around the dirt edges (recessed bed)
+  g.shadowColor = 'rgba(15,8,0,.85)'; g.shadowBlur = cell * .55;
+  g.strokeStyle = 'rgba(25,14,2,.55)'; g.lineWidth = cell * .3;
+  rrect(g, dx0 - cell * .12, dy0 - cell * .12, dw + cell * .24, dw + cell * .24, cell * .3); g.stroke();
+  g.restore();
+  // stamp lattice: every cell outlined with stepped (notched) corners
+  var nk = cell * .17, inset = Math.max(1.2, cell * .022);
+  g.strokeStyle = 'rgba(232,232,224,.8)';
+  g.lineWidth = Math.max(1.2, cell * .028);
+  for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
+    var x0 = ox + c * cell + inset, y0 = oy + r * cell + inset;
+    var x1 = ox + (c + 1) * cell - inset, y1 = oy + (r + 1) * cell - inset;
+    g.beginPath();
+    g.moveTo(x0 + nk, y0);
+    g.lineTo(x1 - nk, y0); g.lineTo(x1 - nk, y0 + nk); g.lineTo(x1, y0 + nk);
+    g.lineTo(x1, y1 - nk); g.lineTo(x1 - nk, y1 - nk); g.lineTo(x1 - nk, y1);
+    g.lineTo(x0 + nk, y1); g.lineTo(x0 + nk, y1 - nk); g.lineTo(x0, y1 - nk);
+    g.lineTo(x0, y0 + nk); g.lineTo(x0 + nk, y0 + nk);
+    g.closePath(); g.stroke();
+  }
+  // small dark crosses in the corner notches
+  var arm = cell * .21, w = cell * .095;
+  for (r = 1; r < N; r++) for (c = 1; c < N; c++) {
     var px = ox + c * cell, py = oy + r * cell;
-    g.fillStyle = '#43301a';                 // dark outline
-    g.fillRect(px - arm - 1.5, py - w / 2 - 1.5, arm * 2 + 3, w + 3);
-    g.fillRect(px - w / 2 - 1.5, py - arm - 1.5, w + 3, arm * 2 + 3);
-    g.fillStyle = '#8a5f36';                 // wood body
+    g.fillStyle = '#3a2712';
+    g.fillRect(px - arm - 1, py - w / 2 - 1, arm * 2 + 2, w + 2);
+    g.fillRect(px - w / 2 - 1, py - arm - 1, w + 2, arm * 2 + 2);
+    g.fillStyle = '#5d3f20';
     g.fillRect(px - arm, py - w / 2, arm * 2, w);
     g.fillRect(px - w / 2, py - arm, w, arm * 2);
-    g.fillStyle = '#c89a64';                 // top-light
-    g.fillRect(px - arm, py - w / 2, arm * 2, 1.6);
-    g.fillRect(px - w / 2, py - arm, 1.6, arm * 2);
   }
 }
 function drawClover(g, x, y, s, rot, leaves, rnd){
@@ -503,7 +510,7 @@ function drawClover(g, x, y, s, rot, leaves, rnd){
   for (var l = 0; l < leaves; l++) {
     var a = (l / leaves) * Math.PI * 2 - Math.PI / 2;
     var lx = Math.cos(a) * s * .5, ly = Math.sin(a) * s * .5;
-    g.fillStyle = (l % 2 === 0) ? 'rgba(158,226,74,.97)' : 'rgba(110,196,46,.97)';
+    g.fillStyle = (l % 2 === 0) ? 'rgba(130,210,62,.97)' : 'rgba(88,175,40,.97)';
     g.beginPath(); g.ellipse(lx, ly, s * .44, s * .35, a, 0, 6.29); g.fill();
     g.strokeStyle = 'rgba(70,150,28,.6)'; g.lineWidth = 1;    // leaf vein
     g.beginPath(); g.moveTo(0, 0); g.lineTo(lx * 1.6, ly * 1.6); g.stroke();
@@ -527,15 +534,15 @@ function at(r, c){ return (r < 0 || c < 0 || r >= N || c >= N) ? undefined : boa
 // o=orb p=pentagon s=square h=hexagon *=star S=switcher .=empty
 var FIXED_ROUNDS = {
   1: [
-    'opphshopS',
-    'osohspphh',
-    'hs.....sh',
-    'sh.ohp.ho',
-    'op.hsh..p',
-    'hp.hhs.p.',
-    'sp.....hs',
-    'ophooopoo',
-    'Spsposhss'
+    'Spphhhpoh',
+    'opohhopop',
+    'so.....hp',
+    'po.hpp.hh',
+    'ho.psh.hp',
+    'oh.php.ph',
+    'oo.....hh',
+    'hphphpsps',
+    'sopshphoS'
   ],
   2: [
     'ppos*sS*o',
@@ -856,11 +863,18 @@ function refreshTray(){
 // ============================================================ drawing
 function shapePath(g, kind, style, s){
   var i, a, r1, r2;
-  if (kind === 'switch') {           // diamond
-    g.beginPath(); g.moveTo(0, -s / 2); g.lineTo(s / 2, 0); g.lineTo(0, s / 2); g.lineTo(-s / 2, 0); g.closePath(); return;
+  if (kind === 'switch') {           // rounded diamond
+    var rr = s * .16;
+    g.beginPath();
+    g.moveTo(0, -s / 2);
+    g.arcTo(s / 2, 0, 0, s / 2, rr);
+    g.arcTo(0, s / 2, -s / 2, 0, rr);
+    g.arcTo(-s / 2, 0, 0, -s / 2, rr);
+    g.arcTo(0, -s / 2, s / 2, 0, rr);
+    g.closePath(); return;
   }
   var name = STYLES[style].name;
-  if (name === 'orb') { g.beginPath(); g.arc(0, 0, s / 2, 0, 6.29); return; }
+  if (name === 'orb') { g.beginPath(); g.ellipse(0, 0, s * .52, s * .45, 0, 0, 6.29); return; }
   if (name === 'sq') { rrect(g, -s / 2, -s / 2, s, s, s * .26); return; }
   if (name === 'heart') {
     g.beginPath();
@@ -889,7 +903,7 @@ function shapePath(g, kind, style, s){
   g.closePath();
 }
 function drawPiece(g, p, x, y, scale, alpha){
-  var s = cell * .72 * (scale || 1);
+  var s = cell * .8 * (scale || 1);
   var pal = p.ghost ? GHOST : (p.kind === 'switch' ? SWITCH : p.kind === 'block' ? null : STYLES[p.style]);
   g.save(); g.translate(x, y); g.globalAlpha = alpha == null ? 1 : alpha;
   // ground shadow
@@ -906,24 +920,26 @@ function drawPiece(g, p, x, y, scale, alpha){
     for (var k = 1; k <= 3; k++) { var ins = bs * .5 - k * bs * .13; g.strokeRect(-ins, -ins, ins * 2, ins * 2); }
     g.restore(); return;
   }
-  // candy-glass body
+  // jelly-glass body: soft vertical gradient, white outline, big top gloss
   shapePath(g, p.kind, p.style, s);
-  var gg = g.createRadialGradient(-s * .16, -s * .2, s * .04, 0, s * .05, s * .68);
-  gg.addColorStop(0, pal.light); gg.addColorStop(.5, pal.main); gg.addColorStop(1, pal.dark);
+  var gg = g.createLinearGradient(0, -s / 2, 0, s / 2);
+  gg.addColorStop(0, pal.main); gg.addColorStop(.3, pal.main); gg.addColorStop(1, pal.dark);
   g.fillStyle = gg; g.fill();
-  g.strokeStyle = pal.dark; g.lineWidth = Math.max(1.4, s * .045); g.stroke();
   g.save(); g.clip();
-  var bl = g.createLinearGradient(0, s * .05, 0, s * .5); // belly bounce-light
-  bl.addColorStop(0, 'rgba(255,255,255,0)'); bl.addColorStop(1, 'rgba(255,255,255,.28)');
-  g.fillStyle = bl; g.fillRect(-s / 2, 0, s, s / 2);
-  g.fillStyle = 'rgba(255,255,255,.55)';            // gloss sweep
-  g.beginPath(); g.ellipse(-s * .08, -s * .24, s * .3, s * .15, -.45, 0, 6.29); g.fill();
-  g.fillStyle = 'rgba(255,255,255,.95)';            // hot specular dot
-  g.beginPath(); g.arc(-s * .16, -s * .26, s * .06, 0, 6.29); g.fill();
+  var rimg = g.createRadialGradient(0, s * .1, s * .1, 0, s * .1, s * .62); // deepen lower edges
+  rimg.addColorStop(.72, 'rgba(0,0,0,0)'); rimg.addColorStop(1, 'rgba(40,10,50,.16)');
+  g.fillStyle = rimg; g.fillRect(-s / 2, -s / 2, s, s);
+  var glo = g.createLinearGradient(0, -s * .48, 0, -s * .02); // crescent gloss up top
+  glo.addColorStop(0, 'rgba(255,255,255,.75)'); glo.addColorStop(1, 'rgba(255,255,255,.04)');
+  g.fillStyle = glo;
+  g.beginPath(); g.ellipse(0, -s * .26, s * .36, s * .19, 0, 0, 6.29); g.fill();
   g.restore();
-  if (p.kind === 'switch' && !p.ghost) {            // gentle magic pulse
-    g.strokeStyle = 'rgba(220,255,200,' + (.35 + .3 * Math.sin(now() / 300)) + ')';
-    g.lineWidth = 2.5; shapePath(g, 'switch', 0, s * 1.1); g.stroke();
+  g.strokeStyle = 'rgba(255,255,255,.92)';          // white rim
+  g.lineWidth = Math.max(1.5, s * .05);
+  shapePath(g, p.kind, p.style, s); g.stroke();
+  if (p.kind === 'switch' && !p.ghost) {            // gentle magic shimmer
+    g.strokeStyle = 'rgba(255,246,190,' + (.3 + .3 * Math.sin(now() / 300)) + ')';
+    g.lineWidth = 2.5; shapePath(g, 'switch', 0, s * 1.12); g.stroke();
   }
   g.restore();
 }
