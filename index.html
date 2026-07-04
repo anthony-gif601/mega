@@ -228,6 +228,7 @@
     <div class="rulerow"><canvas id="helpBl" width="44" height="44"></canvas>
       <p>You must go around the <b>blocker</b> piece.</p></div>
     <p>Get bonus points by chaining <b>all of one style</b> in one chain, or by <b>ending the chain with the switcher</b>!</p>
+    <button class="bigbtn" id="soundBtn" style="font-size:15px;padding:9px 22px;margin-right:8px;">🔊 Sound On</button>
     <button class="bigbtn" id="helpOk">OK</button>
   </div>
 </div>
@@ -293,6 +294,7 @@ var els = {
 var board = [];            // board[r][c] = null | {kind:'charm',style} | {kind:'switch'} | {kind:'block'}  (+ghost,+pop)
 var chain = null;          // {cells:[{r,c}], paths:[[{r,c}..]], styleNow, count}
 var state = 'menu';        // menu | play | paused | over
+var soundOn = true;
 var round = 1, banked = 0, sessLink = 0, timeLeft = MAX_BALLS * SEC_PER_BALL;
 var hi = { name:'MEGATOUCH', score:0, link:0 };
 var dying = [], sparks = [], floats = [], flashes = [];   // effects
@@ -318,6 +320,7 @@ function audio(){
   return AC;
 }
 function beep(f, dur, type, gain, when){
+  if (!soundOn) return;
   var ac = audio(); if (!ac) return;
   var t = ac.currentTime + (when || 0);
   var o = ac.createOscillator(), g = ac.createGain();
@@ -1034,6 +1037,11 @@ bindTap(els.helpBtn, function(){
 bindTap(els.helpOk, function(){
   els.helpOv.classList.add('hidden');
   if (state === 'paused') state = 'play';
+});
+bindTap(document.getElementById('soundBtn'), function(){
+  soundOn = !soundOn;
+  document.getElementById('soundBtn').textContent = soundOn ? '🔊 Sound On' : '🔇 Muted';
+  if (soundOn) { audio(); beep(1733, .08, 'triangle', .08); }
 });
 bindTap(els.quitBtn, function(){
   if (state === 'play') { audio(); gameOver(true); }
