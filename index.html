@@ -48,7 +48,7 @@
     box-shadow:0 3px 8px rgba(0,0,0,.55), inset 0 2px 3px rgba(255,255,255,.5), 0 0 0 2px rgba(10,50,5,.55);
   }
   #endChain:active { transform:translateX(-50%) scale(.95); }
-  #endChain.dim { filter:grayscale(.55) brightness(.75); }
+  #endChain.dim { filter:saturate(.6) brightness(.85); }
   /* ---- side panel ---- */
   #panel {
     flex:0 0 clamp(186px, 24vw, 260px); display:flex; flex-direction:column; gap:7px;
@@ -178,6 +178,25 @@
     border:3px solid #f0c020; border-radius:10px; padding:6px 0 6px 6px; outline:none;
   }
   /* ---- portrait ---- */
+  /* scale the panel up on big screens, like the machine's chunky UI */
+  @media (min-height: 700px) and (min-aspect-ratio: 5/6) {
+    #panel { flex-basis:clamp(220px, 26vw, 340px); gap:12px; padding:16px 13px; }
+    .rbtn { width:60px; height:60px; font-size:28px; border-width:4px; }
+    .banner { padding:6px 8px 8px; border-radius:13px; }
+    #hiBanner .t { font-size:14px; }
+    #hiBanner .n { font-size:19px; }
+    #hiBanner .v { font-size:26px; }
+    #linkBanner { font-size:21px; padding:9px 8px; }
+    .pill { height:52px; gap:9px; }
+    .pill .bar { height:40px; font-size:24px; border-width:4px !important; }
+    .badge { min-width:40px; height:40px; font-size:21px; }
+    #yourLink { font-size:20px; }
+    #roundTitle { font-size:42px; }
+    #tray { min-height:72px; padding:8px 9px; gap:5px; }
+    .ball { width:22px; height:22px; }
+    #takeScore { padding:16px 10px; font-size:26px; border-radius:18px; }
+    #endChain { font-size:26px; padding:12px 70px; bottom:12px; }
+  }
   /* compact panel on short screens (phone landscape) */
   @media (max-height: 460px) {
     #panel { gap:4px; padding:6px 7px 7px; }
@@ -245,7 +264,7 @@
     <button class="bigbtn" id="playBtn">▶ &nbsp;PLAY</button>
     <p id="nojs" style="color:#ffd0c0;font-size:12px;">⚠️ If PLAY does nothing, this viewer is blocking scripts.
     Save the file and open it in <b>Safari</b>, or use the web link instead.</p>
-    <p style="opacity:.75;font-size:11px;margin-top:6px;">build 14 · sampled palette</p>
+    <p style="opacity:.75;font-size:11px;margin-top:6px;">build 15 · reference match pass 2</p>
   </div>
 </div>
 
@@ -298,17 +317,17 @@ if (nojs) nojs.style.display = 'none';
 // ============================================================ constants
 var N = 9;                                 // 9x9 board
 var SEC_PER_BALL = 5, MAX_BALLS = 30;      // 150s of play, +10 balls per cleared round
-// palettes sampled from the reference photo
+// palettes sampled from the reference photo (brightened out of the photo's shadow cast)
 var STYLES = [
-  { name:'orb',   main:'#a4b8ea', light:'#c9d8ff', dark:'#7288c8', rim:'#46589a' },
-  { name:'pent',  main:'#8fca8a', light:'#bce9b4', dark:'#629e5e', rim:'#3c7840' },
-  { name:'sq',    main:'#cf8f8d', light:'#eec2bf', dark:'#a86462', rim:'#7a4240' },
-  { name:'hex',   main:'#c68fd0', light:'#eec2f4', dark:'#9c5eaa', rim:'#6d387e' },
-  { name:'star',  main:'#e8c94e', light:'#f8e9a0', dark:'#bb920e', rim:'#8a6a08' },
-  { name:'heart', main:'#ee9440', light:'#ffd0a0', dark:'#bb5f10', rim:'#8a4408' }
+  { name:'orb',   main:'#aec4f4', light:'#dbe7ff', dark:'#7d94d4', rim:'#50629e' },
+  { name:'pent',  main:'#98d492', light:'#ccf2c4', dark:'#68a862', rim:'#427e46' },
+  { name:'sq',    main:'#dc9a98', light:'#f7d2ce', dark:'#b26f6c', rim:'#82504e' },
+  { name:'hex',   main:'#d29adc', light:'#f4d4f8', dark:'#a668b4', rim:'#764288' },
+  { name:'star',  main:'#eecf52', light:'#fcedaa', dark:'#c39812', rim:'#8f6e0a' },
+  { name:'heart', main:'#f09a46', light:'#ffd6a6', dark:'#c16514', rim:'#8f480a' }
 ];
 var GHOST = { main:'#f2f2ee', light:'#ffffff', dark:'#c8c8d4', rim:'#9a9aae' };
-var SWITCH = { main:'#e8ca5e', light:'#f8e9a4', dark:'#c9a233', rim:'#96781a' };
+var SWITCH = { main:'#ecd06a', light:'#faedae', dark:'#cda83a', rim:'#9a7c1e' };
 
 // ============================================================ dom
 var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -439,12 +458,12 @@ function buildBackground(){
   }
   // clovers scattered on the lawn ring, never over the dirt
   var placed = 0, guard = 0, margin = cell * .95;
-  while (placed < 90 && guard < 2200) {
+  while (placed < 140 && guard < 3000) {
     guard++;
     x = rnd() * gw; y = rnd() * gh;
     if (x > ox - margin && x < ox + boardPx + margin &&
         y > oy - margin && y < oy + boardPx + margin) continue;
-    drawClover(g, x, y, cell * (.2 + rnd() * .2), rnd() * 6.28, rnd() < .3 ? 4 : 3, rnd);
+    drawClover(g, x, y, cell * (.13 + rnd() * .15), rnd() * 6.28, rnd() < .3 ? 4 : 3, rnd);
     placed++;
   }
   // deep mottled dirt bed with a soft shadowed edge (no hard trench line)
@@ -476,9 +495,9 @@ function buildBackground(){
   rrect(g, dx0 - cell * .12, dy0 - cell * .12, dw + cell * .24, dw + cell * .24, cell * .3); g.stroke();
   g.restore();
   // stamp lattice: every cell outlined with stepped (notched) corners
-  var nk = cell * .17, inset = Math.max(1.2, cell * .022);
-  g.strokeStyle = 'rgba(214,208,192,.9)';
-  g.lineWidth = Math.max(1.6, cell * .045);
+  var nk = cell * .20, inset = Math.max(1.2, cell * .02);
+  g.strokeStyle = 'rgba(232,228,214,.95)';
+  g.lineWidth = Math.max(2, cell * .055);
   for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
     var x0 = ox + c * cell + inset, y0 = oy + r * cell + inset;
     var x1 = ox + (c + 1) * cell - inset, y1 = oy + (r + 1) * cell - inset;
@@ -490,19 +509,20 @@ function buildBackground(){
     g.lineTo(x0, y0 + nk); g.lineTo(x0 + nk, y0 + nk);
     g.closePath(); g.stroke();
   }
-  // tan-gold crosses in the corner notches, with a dark cast shadow
-  var arm = cell * .215, w = cell * .10;
+  // chunky tan-gold crosses filling the corner notches, with a dark cast shadow
+  var arm = cell * .27, w = cell * .13;
   for (r = 1; r < N; r++) for (c = 1; c < N; c++) {
     var px = ox + c * cell, py = oy + r * cell;
-    g.fillStyle = 'rgba(35,24,4,.75)';       // cast shadow, offset down-right
-    g.fillRect(px - arm + 2, py - w / 2 + 2, arm * 2, w);
-    g.fillRect(px - w / 2 + 2, py - arm + 2, w, arm * 2);
-    g.fillStyle = '#b6944e';                 // gold-tan body
+    var off = Math.max(2, cell * .04);
+    g.fillStyle = 'rgba(30,20,4,.7)';        // cast shadow, offset down-right
+    g.fillRect(px - arm + off, py - w / 2 + off, arm * 2, w);
+    g.fillRect(px - w / 2 + off, py - arm + off, w, arm * 2);
+    g.fillStyle = '#c2a058';                 // gold-tan body
     g.fillRect(px - arm, py - w / 2, arm * 2, w);
     g.fillRect(px - w / 2, py - arm, w, arm * 2);
-    g.fillStyle = '#dcc27e';                 // top-light
-    g.fillRect(px - arm, py - w / 2, arm * 2, 1.4);
-    g.fillRect(px - w / 2, py - arm, 1.4, arm * 2);
+    g.fillStyle = '#e6cd8c';                 // top-light
+    g.fillRect(px - arm, py - w / 2, arm * 2, Math.max(1.4, w * .22));
+    g.fillRect(px - w / 2, py - arm, Math.max(1.4, w * .22), arm * 2);
   }
 }
 function drawClover(g, x, y, s, rot, leaves, rnd){
@@ -514,7 +534,7 @@ function drawClover(g, x, y, s, rot, leaves, rnd){
   for (var l = 0; l < leaves; l++) {
     var a = (l / leaves) * Math.PI * 2 - Math.PI / 2;
     var lx = Math.cos(a) * s * .5, ly = Math.sin(a) * s * .5;
-    g.fillStyle = (l % 2 === 0) ? 'rgba(130,210,62,.97)' : 'rgba(88,175,40,.97)';
+    g.fillStyle = (l % 2 === 0) ? 'rgba(108,190,52,.95)' : 'rgba(74,155,34,.95)';
     g.beginPath(); g.ellipse(lx, ly, s * .44, s * .35, a, 0, 6.29); g.fill();
     g.strokeStyle = 'rgba(70,150,28,.6)'; g.lineWidth = 1;    // leaf vein
     g.beginPath(); g.moveTo(0, 0); g.lineTo(lx * 1.6, ly * 1.6); g.stroke();
@@ -936,8 +956,8 @@ function drawPiece(g, p, x, y, scale, alpha){
   g.fillStyle = glo;
   g.beginPath(); g.ellipse(0, -s * .27, s * .35, s * .18, 0, 0, 6.29); g.fill();
   g.restore();
-  g.strokeStyle = pal.rim;                          // dark rim
-  g.lineWidth = Math.max(1.5, s * .055);
+  g.strokeStyle = pal.rim;                          // slim dark rim
+  g.lineWidth = Math.max(1.3, s * .035);
   shapePath(g, p.kind, p.style, s); g.stroke();
   if (p.kind === 'switch' && !p.ghost) {            // gentle magic shimmer
     g.strokeStyle = 'rgba(255,246,190,' + (.3 + .3 * Math.sin(now() / 300)) + ')';
@@ -1071,7 +1091,7 @@ function render(){
   }
   ctx.globalAlpha = 1;
   if (state === 'menu') drawLogo(ctx);
-  if ((state === 'play' || state === 'paused') && round <= 2 && banked < 250000 && oy >= 24) {
+  if ((state === 'play' || state === 'paused') && round === 2 && banked < 250000 && oy >= 24) {
     var bfs = Math.min(oy * .62, cell * .55);
     ctx.font = '900 ' + Math.round(bfs) + 'px "Arial Rounded MT Bold",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
