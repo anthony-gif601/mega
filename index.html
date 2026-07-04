@@ -452,7 +452,37 @@ function rrect(g, x, y, w, h, r){
 
 // ============================================================ board generation
 function at(r, c){ return (r < 0 || c < 0 || r >= N || c >= N) ? undefined : board[r][c]; }
+// Round 1 opens with the arcade's board from the reference footage.
+// o=orb p=pentagon s=square h=hexagon S=switcher .=empty
+var ROUND1 = [
+  'opphshopS',
+  'osohspphh',
+  'hs.....sh',
+  'sh.ohp.ho',
+  'op.hsh..p',
+  'hp.hhs.p.',
+  'sp.....hs',
+  'ophooopoo',
+  'Spsposhss'
+];
+var CHARMAP = { o:0, p:1, s:2, h:3 };
 function genBoard(){
+  if (round === 1) {
+    board = [];
+    for (var r = 0; r < N; r++) {
+      board.push([]);
+      for (var c = 0; c < N; c++) {
+        var ch = ROUND1[r].charAt(c);
+        board[r].push(ch === '.' ? null :
+          ch === 'S' ? { kind:'switch' } : { kind:'charm', style: CHARMAP[ch] });
+      }
+    }
+    forEachCell(function(p){ p.pop = now(); });
+    return;
+  }
+  genRandomBoard();
+}
+function genRandomBoard(){
   var styles = 4 + Math.min(2, round - 1);
   var density = Math.min(.85, .75 + (round - 1) * .02);
   var tries = 0;
