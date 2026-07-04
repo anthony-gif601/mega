@@ -131,10 +131,9 @@
     padding:16px;
   }
   .overlay.hidden { display:none; }
-  #menuOv { background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none;
-            align-items:flex-end; pointer-events:none; }
-  #menuOv .sheet { pointer-events:auto; max-width:430px; padding:12px 16px 16px;
-                   margin-bottom:max(10px, env(safe-area-inset-bottom)); }
+  #menuOv { top:auto; bottom:0; background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none;
+            padding-bottom:max(12px, env(safe-area-inset-bottom)); }
+  #menuOv .sheet { max-width:430px; padding:12px 16px 16px; }
   #menuOv h2 { font-size:15px; margin-bottom:2px; }
   #menuOv p { font-size:12.5px; margin:4px 0 2px; }
   .sheet {
@@ -878,24 +877,31 @@ cv.addEventListener('touchstart', function(e){ e.preventDefault(); var t = e.cha
 cv.addEventListener('mousedown', function(e){ onTap(e.clientX, e.clientY); });
 document.body.addEventListener('touchmove', function(e){ if (e.target === cv) e.preventDefault(); }, { passive:false });
 
-els.endChain.addEventListener('click', function(){ audio(); endChain(); });
-els.takeScore.addEventListener('click', function(){ if (state === 'play') { audio(); gameOver(true); } });
-els.helpBtn.addEventListener('click', function(){
+// iOS Safari can be flaky about synthesizing click from touch inside fixed
+// overlays — handle touchend directly and swallow the follow-up click.
+function bindTap(el, fn){
+  var fired = 0;
+  el.addEventListener('touchend', function(e){ e.preventDefault(); fired = now(); fn(); }, { passive:false });
+  el.addEventListener('click', function(){ if (now() - fired > 500) fn(); });
+}
+bindTap(els.endChain, function(){ audio(); endChain(); });
+bindTap(els.takeScore, function(){ if (state === 'play') { audio(); gameOver(true); } });
+bindTap(els.helpBtn, function(){
   audio();
   if (state === 'play' || state === 'menu') {
     if (state === 'play') state = 'paused';
     els.helpOv.classList.remove('hidden');
   }
 });
-els.helpOk.addEventListener('click', function(){
+bindTap(els.helpOk, function(){
   els.helpOv.classList.add('hidden');
   if (state === 'paused') state = 'play';
 });
-els.quitBtn.addEventListener('click', function(){
+bindTap(els.quitBtn, function(){
   if (state === 'play') { audio(); gameOver(true); }
 });
-els.playBtn.addEventListener('click', function(){ audio(); newGame(); });
-els.againBtn.addEventListener('click', function(){ audio(); commitHi(); newGame(); });
+bindTap(els.playBtn, function(){ audio(); newGame(); });
+bindTap(els.againBtn, function(){ audio(); commitHi(); newGame(); });
 els.initials.addEventListener('input', function(){ this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
 
 // ============================================================ boot
