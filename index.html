@@ -245,7 +245,7 @@
     <button class="bigbtn" id="playBtn">▶ &nbsp;PLAY</button>
     <p id="nojs" style="color:#ffd0c0;font-size:12px;">⚠️ If PLAY does nothing, this viewer is blocking scripts.
     Save the file and open it in <b>Safari</b>, or use the web link instead.</p>
-    <p style="opacity:.75;font-size:11px;margin-top:6px;">build 13 · high-res visual match</p>
+    <p style="opacity:.75;font-size:11px;margin-top:6px;">build 14 · sampled palette</p>
   </div>
 </div>
 
@@ -298,16 +298,17 @@ if (nojs) nojs.style.display = 'none';
 // ============================================================ constants
 var N = 9;                                 // 9x9 board
 var SEC_PER_BALL = 5, MAX_BALLS = 30;      // 150s of play, +10 balls per cleared round
+// palettes sampled from the reference photo
 var STYLES = [
-  { name:'orb',   main:'#a9c2f0', light:'#e9f0ff', dark:'#6f8cd0' },
-  { name:'pent',  main:'#9fd694', light:'#e4f7dc', dark:'#5aa04e' },
-  { name:'sq',    main:'#e79b9b', light:'#f9dcd8', dark:'#b85c5c' },
-  { name:'hex',   main:'#d383e3', light:'#f3d2f7', dark:'#9a44b0' },
-  { name:'star',  main:'#f7cc3c', light:'#ffefa2', dark:'#bb860e' },
-  { name:'heart', main:'#f79232', light:'#ffd8a4', dark:'#bb5210' }
+  { name:'orb',   main:'#a4b8ea', light:'#c9d8ff', dark:'#7288c8', rim:'#46589a' },
+  { name:'pent',  main:'#8fca8a', light:'#bce9b4', dark:'#629e5e', rim:'#3c7840' },
+  { name:'sq',    main:'#cf8f8d', light:'#eec2bf', dark:'#a86462', rim:'#7a4240' },
+  { name:'hex',   main:'#c68fd0', light:'#eec2f4', dark:'#9c5eaa', rim:'#6d387e' },
+  { name:'star',  main:'#e8c94e', light:'#f8e9a0', dark:'#bb920e', rim:'#8a6a08' },
+  { name:'heart', main:'#ee9440', light:'#ffd0a0', dark:'#bb5f10', rim:'#8a4408' }
 ];
-var GHOST = { main:'#f6f6f4', light:'#ffffff', dark:'#b0b0c4' };
-var SWITCH = { main:'#f0dc82', light:'#fdf6cc', dark:'#c0a030' };
+var GHOST = { main:'#f2f2ee', light:'#ffffff', dark:'#c8c8d4', rim:'#9a9aae' };
+var SWITCH = { main:'#e8ca5e', light:'#f8e9a4', dark:'#c9a233', rim:'#96781a' };
 
 // ============================================================ dom
 var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
@@ -452,7 +453,7 @@ function buildBackground(){
   g.save();
   g.shadowColor = 'rgba(0,15,0,.75)'; g.shadowBlur = cell * .5;
   var dg = g.createLinearGradient(0, dy0, 0, dy0 + dw);
-  dg.addColorStop(0, '#7c5c38'); dg.addColorStop(.45, '#6e4e2c'); dg.addColorStop(1, '#5e4022');
+  dg.addColorStop(0, '#7c705c'); dg.addColorStop(.45, '#6f6350'); dg.addColorStop(1, '#5f5444');
   g.fillStyle = dg;
   rrect(g, dx0, dy0, dw, dw, cell * .3); g.fill();
   g.restore();
@@ -460,13 +461,13 @@ function buildBackground(){
   rrect(g, dx0, dy0, dw, dw, cell * .3); g.clip();
   for (i = 0; i < 260; i++) {                // soft mottling blotches
     x = dx0 + rnd() * dw; y = dy0 + rnd() * dw;
-    g.fillStyle = rnd() < .5 ? 'rgba(40,24,8,.07)' : 'rgba(180,150,110,.06)';
+    g.fillStyle = rnd() < .5 ? 'rgba(35,28,16,.08)' : 'rgba(175,165,140,.07)';
     g.beginPath(); g.ellipse(x, y, 4 + rnd() * cell * .4, 3 + rnd() * cell * .3, rnd() * 3, 0, 6.29); g.fill();
   }
   var specks = Math.round(dw * dw / 30);     // fine grain
   for (i = 0; i < specks; i++) {
     x = dx0 + rnd() * dw; y = dy0 + rnd() * dw;
-    g.fillStyle = rnd() < .5 ? 'rgba(35,20,6,.18)' : 'rgba(200,175,135,.13)';
+    g.fillStyle = rnd() < .5 ? 'rgba(32,25,12,.18)' : 'rgba(195,185,158,.14)';
     g.fillRect(x, y, 1.4, 1.4);
   }
   // dark inner shadow around the dirt edges (recessed bed)
@@ -476,8 +477,8 @@ function buildBackground(){
   g.restore();
   // stamp lattice: every cell outlined with stepped (notched) corners
   var nk = cell * .17, inset = Math.max(1.2, cell * .022);
-  g.strokeStyle = 'rgba(232,232,224,.8)';
-  g.lineWidth = Math.max(1.2, cell * .028);
+  g.strokeStyle = 'rgba(214,208,192,.9)';
+  g.lineWidth = Math.max(1.6, cell * .045);
   for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
     var x0 = ox + c * cell + inset, y0 = oy + r * cell + inset;
     var x1 = ox + (c + 1) * cell - inset, y1 = oy + (r + 1) * cell - inset;
@@ -489,16 +490,19 @@ function buildBackground(){
     g.lineTo(x0, y0 + nk); g.lineTo(x0 + nk, y0 + nk);
     g.closePath(); g.stroke();
   }
-  // small dark crosses in the corner notches
-  var arm = cell * .21, w = cell * .095;
+  // tan-gold crosses in the corner notches, with a dark cast shadow
+  var arm = cell * .215, w = cell * .10;
   for (r = 1; r < N; r++) for (c = 1; c < N; c++) {
     var px = ox + c * cell, py = oy + r * cell;
-    g.fillStyle = '#3a2712';
-    g.fillRect(px - arm - 1, py - w / 2 - 1, arm * 2 + 2, w + 2);
-    g.fillRect(px - w / 2 - 1, py - arm - 1, w + 2, arm * 2 + 2);
-    g.fillStyle = '#5d3f20';
+    g.fillStyle = 'rgba(35,24,4,.75)';       // cast shadow, offset down-right
+    g.fillRect(px - arm + 2, py - w / 2 + 2, arm * 2, w);
+    g.fillRect(px - w / 2 + 2, py - arm + 2, w, arm * 2);
+    g.fillStyle = '#b6944e';                 // gold-tan body
     g.fillRect(px - arm, py - w / 2, arm * 2, w);
     g.fillRect(px - w / 2, py - arm, w, arm * 2);
+    g.fillStyle = '#dcc27e';                 // top-light
+    g.fillRect(px - arm, py - w / 2, arm * 2, 1.4);
+    g.fillRect(px - w / 2, py - arm, 1.4, arm * 2);
   }
 }
 function drawClover(g, x, y, s, rot, leaves, rnd){
@@ -920,22 +924,20 @@ function drawPiece(g, p, x, y, scale, alpha){
     for (var k = 1; k <= 3; k++) { var ins = bs * .5 - k * bs * .13; g.strokeRect(-ins, -ins, ins * 2, ins * 2); }
     g.restore(); return;
   }
-  // jelly-glass body: soft vertical gradient, white outline, big top gloss
+  // jelly-glass body: light top, dusky middle, bright belly bounce, dark rim
   shapePath(g, p.kind, p.style, s);
   var gg = g.createLinearGradient(0, -s / 2, 0, s / 2);
-  gg.addColorStop(0, pal.main); gg.addColorStop(.3, pal.main); gg.addColorStop(1, pal.dark);
+  gg.addColorStop(0, pal.light); gg.addColorStop(.48, pal.main);
+  gg.addColorStop(.82, pal.light); gg.addColorStop(1, pal.main);
   g.fillStyle = gg; g.fill();
   g.save(); g.clip();
-  var rimg = g.createRadialGradient(0, s * .1, s * .1, 0, s * .1, s * .62); // deepen lower edges
-  rimg.addColorStop(.72, 'rgba(0,0,0,0)'); rimg.addColorStop(1, 'rgba(40,10,50,.16)');
-  g.fillStyle = rimg; g.fillRect(-s / 2, -s / 2, s, s);
-  var glo = g.createLinearGradient(0, -s * .48, 0, -s * .02); // crescent gloss up top
-  glo.addColorStop(0, 'rgba(255,255,255,.75)'); glo.addColorStop(1, 'rgba(255,255,255,.04)');
+  var glo = g.createLinearGradient(0, -s * .48, 0, -s * .04); // crescent gloss up top
+  glo.addColorStop(0, 'rgba(255,255,255,.85)'); glo.addColorStop(1, 'rgba(255,255,255,.05)');
   g.fillStyle = glo;
-  g.beginPath(); g.ellipse(0, -s * .26, s * .36, s * .19, 0, 0, 6.29); g.fill();
+  g.beginPath(); g.ellipse(0, -s * .27, s * .35, s * .18, 0, 0, 6.29); g.fill();
   g.restore();
-  g.strokeStyle = 'rgba(255,255,255,.92)';          // white rim
-  g.lineWidth = Math.max(1.5, s * .05);
+  g.strokeStyle = pal.rim;                          // dark rim
+  g.lineWidth = Math.max(1.5, s * .055);
   shapePath(g, p.kind, p.style, s); g.stroke();
   if (p.kind === 'switch' && !p.ghost) {            // gentle magic shimmer
     g.strokeStyle = 'rgba(255,246,190,' + (.3 + .3 * Math.sin(now() / 300)) + ')';
