@@ -213,7 +213,7 @@
     <button class="bigbtn" id="playBtn">▶ &nbsp;PLAY</button>
     <p id="nojs" style="color:#ffd0c0;font-size:12px;">⚠️ If PLAY does nothing, this viewer is blocking scripts.
     Save the file and open it in <b>Safari</b>, or use the web link instead.</p>
-    <p style="opacity:.75;font-size:11px;margin-top:6px;">build 8 · outside links enabled</p>
+    <p style="opacity:.75;font-size:11px;margin-top:6px;">build 9 · outside links · 2 rounds + bonus</p>
   </div>
 </div>
 
@@ -294,7 +294,6 @@ var board = [];            // board[r][c] = null | {kind:'charm',style} | {kind:
 var chain = null;          // {cells:[{r,c}], paths:[[{r,c}..]], styleNow, count}
 var state = 'menu';        // menu | play | paused | over
 var round = 1, banked = 0, sessLink = 0, timeLeft = MAX_BALLS * SEC_PER_BALL;
-var bonusRoundGiven = false;
 var hi = { name:'MEGATOUCH', score:0, link:0 };
 var dying = [], sparks = [], floats = [], flashes = [];   // effects
 var splash = null;         // {text, t}
@@ -328,17 +327,40 @@ function beep(f, dur, type, gain, when){
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + .05);
 }
+// tuned to a spectral analysis of a recording of the real machine:
+// links are a fixed dual-tone blip (~1730+1840Hz), banking a chain plays a
+// fast rising run (~620->2920Hz) capped with a ~1050Hz thunk, and a gentle
+// one-note-per-second music loop plays underneath.
 var sfx = {
-  select: function(){ beep(520, .08, 'triangle', .09); },
-  link: function(n){ beep(420 + Math.min(n, 20) * 55, .11, 'triangle', .11); beep(640 + n * 55, .09, 'sine', .06, .04); },
-  switcher: function(){ beep(700, .12, 'square', .05); beep(1050, .18, 'sine', .09, .05); },
+  select: function(){ beep(1733, .07, 'triangle', .07); },
+  link: function(){ beep(1733, .09, 'triangle', .12); beep(1843, .09, 'sine', .09); beep(2925, .05, 'sine', .03, .01); },
+  switcher: function(){ beep(1733, .09, 'triangle', .1); beep(2317, .12, 'sine', .08, .04); },
   bad: function(){ beep(150, .16, 'sawtooth', .07); beep(110, .18, 'sawtooth', .05, .07); },
-  pop: function(i){ beep(500 + i * 40, .07, 'triangle', .09, i * .045); },
-  bank: function(){ beep(660, .12, 'sine', .1, .05); beep(880, .2, 'sine', .1, .14); },
+  pop: function(i){ beep(1733, .05, 'triangle', .05, i * .04); },
+  bank: function(){
+    [617, 1133, 1267, 1767, 1867, 2917].forEach(function(f, i){ beep(f, .09, 'triangle', .1, i * .055); });
+    beep(1050, .22, 'sine', .14, .36); beep(525, .22, 'sine', .07, .36);
+  },
   bonus: function(){ [660,830,990,1320].forEach(function(f,i){ beep(f, .18, 'triangle', .1, i * .09); }); },
   fanfare: function(){ [523,659,784,1046,1318].forEach(function(f,i){ beep(f, .25, 'triangle', .11, i * .11); }); },
   over: function(){ [440,370,311,262,196].forEach(function(f,i){ beep(f, .3, 'sine', .1, i * .16); }); }
 };
+// 16-beat background loop at 60 BPM, notes lifted from the machine recording
+var MELODY = [784, 932, 932, 659, 784, 1175, 1319, 1245, 392, 932, 1047, 698, 1175, 932, 1568, 659];
+var MBASS  = [233,   0, 466, 392, 233, 415,    0, 349, 392,   0, 349,   0, 466, 233, 262, 392];
+var musicBeat = 0, musicNext = 0;
+function musicTick(){
+  if (!soundOn || state !== 'play') return;
+  var ac = AC; if (!ac || ac.state !== 'running') return;
+  var t = ac.currentTime;
+  if (musicNext < t) { musicNext = t + .05; }
+  while (musicNext < t + .2) {
+    var i = musicBeat % 16, off = musicNext - t;
+    if (MELODY[i]) beep(MELODY[i], .45, 'triangle', .028, off);
+    if (MBASS[i])  beep(MBASS[i],  .6,  'sine',     .04,  off);
+    musicBeat++; musicNext += 1.0;
+  }
+}
 
 // ============================================================ geometry
 function now(){ return performance.now(); }
@@ -480,23 +502,35 @@ var FIXED_ROUNDS = {
     '*ophphh*h'
   ]
 };
-var CHARMAP = { o:0, p:1, s:2, h:3, '*':4 };
 function genBoard(){
   var fixed = FIXED_ROUNDS[round];
-  if (fixed) {
+  if (fixed) { genFromPattern(fixed, round === 1 ? 4 : 5); return; }
+  genRandomBoard();
+}
+// keep the arcade's occupancy pattern + switcher spots, shuffle which charm sits where
+function genFromPattern(pattern, styleCount){
+  var tries = 0;
+  do {
     board = [];
+    var counts = {};
     for (var r = 0; r < N; r++) {
       board.push([]);
       for (var c = 0; c < N; c++) {
-        var ch = fixed[r].charAt(c);
-        board[r].push(ch === '.' ? null :
-          ch === 'S' ? { kind:'switch' } : { kind:'charm', style: CHARMAP[ch] });
+        var ch = pattern[r].charAt(c);
+        if (ch === '.') { board[r].push(null); continue; }
+        if (ch === 'S') { board[r].push({ kind:'switch' }); continue; }
+        var st = Math.floor(Math.random() * styleCount);
+        counts[st] = (counts[st] || 0) + 1;
+        board[r].push({ kind:'charm', style: st });
       }
     }
-    forEachCell(function(p){ p.pop = now(); });
-    return;
-  }
-  genRandomBoard();
+    for (var s = 0; s < styleCount; s++) {          // no lonely styles
+      if (counts[s] === 1)
+        forEachCell(function(p){ if (p.kind === 'charm' && p.style === s) p.style = (s + 1) % styleCount; });
+    }
+    tries++;
+  } while (!hasAnyLink() && tries < 20);
+  forEachCell(function(p){ p.pop = now(); });
 }
 function genRandomBoard(){
   var styles = 4 + Math.min(2, round - 1);
@@ -510,7 +544,7 @@ function genRandomBoard(){
       var wr = Math.floor(Math.random() * N), wc = Math.floor(Math.random() * N);
       if (!board[wr][wc]) { board[wr][wc] = { kind:'switch' }; sw--; }
     }
-    var blocks = Math.min(4, Math.max(0, round - 2));   // blockers appear from round 3
+    var blocks = round >= 3 ? 2 : 0;                // the bonus round adds blockers
     while (blocks > 0) {
       var br = 1 + Math.floor(Math.random() * (N - 2)), bc = 1 + Math.floor(Math.random() * (N - 2));
       if (!board[br][bc]) { board[br][bc] = { kind:'block' }; blocks--; }
@@ -610,7 +644,11 @@ function tapCell(r, c){
   var styleOk = p.kind === 'switch' || chain.styleNow === null ||
                 (p.kind === 'charm' && p.style === chain.styleNow);
   var path = styleOk ? connect(last, { r:r, c:c }) : null;
-  if (!path) { xFlash(r, c); sfx.bad(); return; }
+  if (!path) {
+    xFlash(r, c); sfx.bad();
+    floatText(cx(c), cy(r) - cell * .7, styleOk ? 'no path!' : 'wrong charm!', '#ff9c8a');
+    return;
+  }
   p.ghost = true;
   chain.cells.push({ r:r, c:c });
   chain.paths.push(path);
@@ -637,6 +675,7 @@ function endChain(){
     if (q && q.kind === 'charm') chainStyle[q.style] = (chainStyle[q.style] || 0) + 1;
   });
   for (var s in chainStyle) if (chainStyle[s] === styleCount[s]) { bonus += 2000; break; }  // all of one style
+  if (round >= 3) { value *= 2; bonus *= 2; }      // bonus round: double points
   banked += value + bonus;
   if (len > sessLink) sessLink = len;
   if (len > hi.link) { hi.link = len; saveHi(); }
@@ -652,11 +691,6 @@ function endChain(){
   });
   sfx.bank();
   chain = null;
-  if (!bonusRoundGiven && banked >= 250000) {       // the promised bonus round
-    bonusRoundGiven = true;
-    timeLeft = MAX_BALLS * SEC_PER_BALL;
-    showSplash('BONUS ROUND!', 1600); sfx.fanfare();
-  }
   var charmsLeft = 0;
   forEachCell(function(q){ if (q.kind !== 'block') charmsLeft++; });
   if (charmsLeft === 0) { roundOver(true); }
@@ -668,22 +702,33 @@ function roundOver(cleared){
   if (cleared) { banked += 2000; sfx.fanfare(); showSplash('BOARD CLEAR! +2,000', 1500); }
   else { showSplash('NO MORE LINKS!', 1400); }
   setTimeout(function(){
-    round++;
-    timeLeft = Math.min(MAX_BALLS * SEC_PER_BALL, timeLeft + 10 * SEC_PER_BALL);
-    genBoard();
-    showSplash('ROUND ' + round, 1200);
+    if (round === 1) {                              // round 1 -> round 2
+      round = 2;
+      timeLeft = Math.min(MAX_BALLS * SEC_PER_BALL, timeLeft + 10 * SEC_PER_BALL);
+      genBoard();
+      showSplash('ROUND 2', 1200);
+    } else if (round === 2 && banked >= 250000) {   // earned the bonus round
+      round = 3;
+      timeLeft = MAX_BALLS * SEC_PER_BALL;          // full fresh tray
+      genBoard();
+      sfx.fanfare();
+      showSplash('BONUS ROUND! 2x POINTS', 1600);
+    } else {                                        // that's the whole game
+      gameOver(false, true);
+      return;
+    }
     setTimeout(function(){ if (state === 'paused') state = 'play'; refreshHud(); }, 700);
     refreshHud();
   }, 1500);
 }
-function gameOver(tookScore){
+function gameOver(tookScore, complete){
   if (chain) {                                      // bank a pending chain of 2+
     if (chain.cells.length >= 2) { state = 'play'; endChain(); }
     else { var q = at(chain.cells[0].r, chain.cells[0].c); if (q) q.ghost = false; chain = null; }
   }
   state = 'over';
-  sfx.over();
-  els.overTitle.textContent = tookScore ? 'SCORE TAKEN' : 'OUT OF TIME';
+  if (complete) sfx.fanfare(); else sfx.over();
+  els.overTitle.textContent = complete ? '🏆 GAME COMPLETE!' : tookScore ? 'SCORE TAKEN' : 'OUT OF TIME';
   els.finalScore.textContent = banked.toLocaleString();
   els.overStats.textContent = 'Round ' + round + '  ·  Your Longest Link: ' + sessLink;
   var isHi = banked > hi.score;
@@ -701,7 +746,8 @@ function commitHi(){
 }
 function saveHi(){ try { localStorage.setItem('mcm_hi', JSON.stringify(hi)); } catch (e) {} }
 function newGame(){
-  round = 1; banked = 0; sessLink = 0; bonusRoundGiven = false;
+  round = 1; banked = 0; sessLink = 0;
+  musicBeat = 0; musicNext = 0;
   timeLeft = MAX_BALLS * SEC_PER_BALL;
   chain = null; dying.length = 0; sparks.length = 0; floats.length = 0; flashes.length = 0;
   genBoard();
@@ -729,14 +775,14 @@ function refreshHud(){
   els.hiName.textContent = hi.name;
   els.hiVal.textContent = hi.score.toLocaleString();
   els.bestLink.textContent = hi.link;
-  els.roundBadge.textContent = round;
+  els.roundBadge.textContent = round >= 3 ? 'B' : round;
   els.bankVal.textContent = banked.toLocaleString();
   var len = chain ? chain.cells.length : 0;
   els.chainBadge.style.visibility = len ? 'visible' : 'hidden';
   els.chainBadge.textContent = len;
   els.chainVal.textContent = len ? chainValue(len).toLocaleString() : '0';
   els.sessLink.textContent = sessLink;
-  els.roundTitle.textContent = 'ROUND ' + round;
+  els.roundTitle.textContent = round >= 3 ? 'BONUS!' : 'ROUND ' + round;
   els.endChain.classList.toggle('dim', !chain || chain.cells.length < 2);
 }
 var ballEls = [];
@@ -911,7 +957,7 @@ function render(){
   }
   ctx.globalAlpha = 1;
   if (state === 'menu') drawLogo(ctx);
-  if ((state === 'play' || state === 'paused') && !bonusRoundGiven && oy >= 24) {
+  if ((state === 'play' || state === 'paused') && round <= 2 && banked < 250000 && oy >= 24) {
     var bfs = Math.min(oy * .62, cell * .55);
     ctx.font = '900 ' + Math.round(bfs) + 'px "Arial Rounded MT Bold",sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -948,6 +994,7 @@ function loop(){
   }
   var balls = Math.ceil(timeLeft / SEC_PER_BALL);
   if (balls !== lastBalls) { lastBalls = balls; refreshTray(); }
+  musicTick();
   render();
   requestAnimationFrame(loop);
 }
