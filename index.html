@@ -23,29 +23,31 @@
   }
   #game {
     position:fixed; inset:0; display:flex; align-items:stretch; justify-content:center;
-    gap:8px;
-    padding:calc(env(safe-area-inset-top,0px) + 6px) calc(env(safe-area-inset-right,0px) + 6px)
-            calc(env(safe-area-inset-bottom,0px) + 6px) calc(env(safe-area-inset-left,0px) + 6px);
-    background:
-      radial-gradient(90% 70% at 50% 30%, #17351c 0%, #0a1f0e 60%, #050f07 100%);
+    gap:5px;
+    padding:calc(env(safe-area-inset-top,0px) + 4px) calc(env(safe-area-inset-right,0px) + 4px)
+            calc(env(safe-area-inset-bottom,0px) + 4px) calc(env(safe-area-inset-left,0px) + 4px);
+    background:#123c14;
   }
-  #boardcol { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  canvas#cv { display:block; touch-action:none; border-radius:10px; }
-  /* ---- End Chain button ---- */
+  #boardcol { flex:1 1 auto; min-width:0; min-height:0; position:relative;
+              border:2px solid #e9dfae; border-radius:12px; overflow:hidden;
+              box-shadow:inset 0 0 24px rgba(0,30,0,.35); }
+  canvas#cv { display:block; touch-action:none; position:absolute; inset:0; }
+  /* ---- End Chain button (floats over the grass, like the machine) ---- */
   #endChain {
-    margin-top:-4px; z-index:3; appearance:none; border:2px solid #eaffea; cursor:pointer;
+    position:absolute; bottom:7px; left:50%; transform:translateX(-50%);
+    z-index:3; appearance:none; border:2px solid #eaffea; cursor:pointer;
     font-family:inherit; font-size:17px; font-weight:800; color:#fff;
     text-shadow:0 1px 2px rgba(0,60,0,.8); letter-spacing:.5px;
-    padding:7px 34px; border-radius:999px;
+    padding:7px 44px; border-radius:999px; white-space:nowrap;
     background:linear-gradient(180deg,#8fe05a 0%,#3aa825 45%,#1e7a12 55%,#4cc233 100%);
     box-shadow:0 3px 8px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.5);
   }
-  #endChain:active { transform:scale(.95); }
+  #endChain:active { transform:translateX(-50%) scale(.95); }
   #endChain.dim { filter:grayscale(.55) brightness(.75); }
   /* ---- side panel ---- */
   #panel {
-    flex:0 0 236px; width:236px; display:flex; flex-direction:column; gap:7px;
-    border:2px solid #f4f0c0; border-radius:16px; padding:9px 9px 10px;
+    flex:0 0 clamp(186px, 23vw, 250px); display:flex; flex-direction:column; gap:7px;
+    border:2px solid #f4f0c0; border-radius:12px; padding:9px 9px 10px;
     background:
       radial-gradient(140% 60% at 50% 0%, #b8dc7a 0%, #8cc25a 30%, #57a03c 70%, #3f8a2e 100%);
     box-shadow:0 4px 16px rgba(0,0,0,.55), inset 0 0 0 2px rgba(60,120,30,.5);
@@ -91,6 +93,7 @@
     box-shadow:inset 0 2px 4px rgba(0,0,0,.8);
   }
   #roundPill .bar { border:3px solid #f0c020; }
+  #chainPill { margin-top:auto; }
   #chainPill .bar { border:3px solid #38b8e8; }
   .badge {
     min-width:26px; height:26px; display:flex; align-items:center; justify-content:center;
@@ -165,10 +168,11 @@
   }
   /* ---- portrait ---- */
   @media (max-aspect-ratio: 5/6) {
-    #game { flex-direction:column; align-items:center; justify-content:center; gap:8px; }
-    #boardcol { flex:1 1 auto; max-height:calc(100vw + 44px); justify-content:flex-end; }
-    #panel { flex:0 0 auto; width:100%; max-width:520px;
+    #game { flex-direction:column; align-items:center; justify-content:center; gap:5px; }
+    #boardcol { width:100%; flex:1 1 auto; min-height:0; }
+    #panel { flex:0 0 auto; width:100%; max-width:560px;
              display:grid; grid-template-columns:1fr 1fr; gap:5px 7px; padding:8px; }
+    #chainPill { margin-top:0; }
     #topbtns { order:9; grid-column:1 / -1; justify-content:center; gap:22px; }
     #hiBanner { grid-column:1; } #linkBanner { grid-column:2; align-self:center; }
     #roundPill { grid-column:1; } #chainPill { grid-column:2; }
@@ -293,7 +297,8 @@ var bonusRoundGiven = false;
 var hi = { name:'MEGATOUCH', score:0, link:0 };
 var dying = [], sparks = [], floats = [], flashes = [];   // effects
 var splash = null;         // {text, t}
-var cell = 40, frame = 36, boardPx = 360, dpr = 1;
+var cell = 40, boardPx = 360, dpr = 1;
+var gw = 0, gh = 0, ox = 0, oy = 0;   // canvas size + dirt-board origin
 var bgCanvas = null;       // pre-rendered grass+dirt+crosses
 
 try {
@@ -338,65 +343,75 @@ var sfx = {
 function now(){ return performance.now(); }
 function resize(){
   var col = $('boardcol');
-  var availW = col.clientWidth - 4, availH = col.clientHeight - 48;
-  cell = Math.floor(Math.min(availW / (N + 1.7), availH / (N + 1.7), 74));
-  frame = Math.round(cell * .85);
+  gw = col.clientWidth; gh = col.clientHeight;
+  cell = Math.floor(Math.min((gw - 24) / N, (gh - 46) / N, 86));
   boardPx = cell * N;
-  var full = boardPx + frame * 2;
+  ox = Math.round((gw - boardPx) / 2);
+  oy = Math.round((gh - boardPx - 26) / 2);   // ride high: End Chain overlaps the grass below
+  if (oy < 4) oy = Math.max(2, Math.round((gh - boardPx) / 2));
   dpr = Math.min(window.devicePixelRatio || 1, 3);
-  cv.style.width = full + 'px'; cv.style.height = full + 'px';
-  cv.width = full * dpr; cv.height = full * dpr;
+  cv.style.width = gw + 'px'; cv.style.height = gh + 'px';
+  cv.width = gw * dpr; cv.height = gh * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  buildBackground(full);
+  buildBackground();
 }
-function cx(c){ return frame + c * cell + cell / 2; }
-function cy(r){ return frame + r * cell + cell / 2; }
+function cx(c){ return ox + c * cell + cell / 2; }
+function cy(r){ return oy + r * cell + cell / 2; }
 
 // ============================================================ background (grass frame + dirt + crosses)
-function buildBackground(full){
+function buildBackground(){
   bgCanvas = document.createElement('canvas');
-  bgCanvas.width = full * dpr; bgCanvas.height = full * dpr;
+  bgCanvas.width = gw * dpr; bgCanvas.height = gh * dpr;
   var g = bgCanvas.getContext('2d');
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   var rnd = mulberry(12345);
-  // grass
-  var gr = g.createLinearGradient(0, 0, 0, full);
+  // grass fills the whole screen
+  var gr = g.createLinearGradient(0, 0, 0, gh);
   gr.addColorStop(0, '#6cc93a'); gr.addColorStop(.5, '#4cad2a'); gr.addColorStop(1, '#3a941e');
-  g.fillStyle = gr; g.fillRect(0, 0, full, full);
+  g.fillStyle = gr; g.fillRect(0, 0, gw, gh);
   var i, x, y;
-  for (i = 0; i < full * 4; i++) {           // grass blades
-    x = rnd() * full; y = rnd() * full;
+  var blades = Math.round(gw * gh / 150);    // grass blades
+  for (i = 0; i < blades; i++) {
+    x = rnd() * gw; y = rnd() * gh;
     g.strokeStyle = rnd() < .5 ? 'rgba(20,90,10,.25)' : 'rgba(150,230,90,.22)';
     g.lineWidth = 1;
     g.beginPath(); g.moveTo(x, y); g.lineTo(x + (rnd() * 4 - 2), y - 3 - rnd() * 5); g.stroke();
   }
-  // clovers around the frame ring
-  var inner = frame - cell * .12;
-  for (i = 0; i < 64; i++) {
-    var side = i % 4, t = rnd();
-    if (side === 0) { x = t * full; y = rnd() * inner; }
-    else if (side === 1) { x = t * full; y = full - rnd() * inner; }
-    else if (side === 2) { x = rnd() * inner; y = t * full; }
-    else { x = full - rnd() * inner; y = t * full; }
-    drawClover(g, x, y, cell * (.2 + rnd() * .17), rnd() * 6.28, rnd() < .3 ? 4 : 3, rnd);
+  // clovers scattered across the grass, never over the dirt
+  var placed = 0, guard = 0, margin = cell * .48;
+  while (placed < 80 && guard < 1200) {
+    guard++;
+    x = rnd() * gw; y = rnd() * gh;
+    if (x > ox - margin && x < ox + boardPx + margin &&
+        y > oy - margin && y < oy + boardPx + margin) continue;
+    drawClover(g, x, y, cell * (.18 + rnd() * .17), rnd() * 6.28, rnd() < .3 ? 4 : 3, rnd);
+    placed++;
   }
-  // dirt bed (with a raised soil rim)
-  var pad = cell * .14;
+  // gentle vignette for depth
+  var vg = g.createRadialGradient(gw / 2, gh / 2, Math.min(gw, gh) * .35, gw / 2, gh / 2, Math.max(gw, gh) * .8);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,40,0,.32)');
+  g.fillStyle = vg; g.fillRect(0, 0, gw, gh);
+  // dirt bed (with a raised soil rim + drop shadow)
+  var pad = cell * .15;
+  g.save();
+  g.shadowColor = 'rgba(0,30,0,.5)'; g.shadowBlur = 14; g.shadowOffsetY = 4;
   g.fillStyle = '#6a4526';
-  rrect(g, frame - pad * 1.6, frame - pad * 1.6, boardPx + pad * 3.2, boardPx + pad * 3.2, 10); g.fill();
-  var dg = g.createLinearGradient(0, frame, 0, frame + boardPx);
+  rrect(g, ox - pad * 1.9, oy - pad * 1.9, boardPx + pad * 3.8, boardPx + pad * 3.8, 12); g.fill();
+  g.restore();
+  var dg = g.createLinearGradient(0, oy, 0, oy + boardPx);
   dg.addColorStop(0, '#9b8767'); dg.addColorStop(.5, '#8d7a5f'); dg.addColorStop(1, '#7e6c4f');
   g.fillStyle = dg;
-  rrect(g, frame - pad * .4, frame - pad * .4, boardPx + pad * .8, boardPx + pad * .8, 6); g.fill();
-  for (i = 0; i < boardPx * 6; i++) {        // dirt speckles
-    x = frame + rnd() * boardPx; y = frame + rnd() * boardPx;
+  rrect(g, ox - pad * .5, oy - pad * .5, boardPx + pad, boardPx + pad, 6); g.fill();
+  var specks = Math.round(boardPx * boardPx / 55);
+  for (i = 0; i < specks; i++) {             // dirt speckles
+    x = ox + rnd() * boardPx; y = oy + rnd() * boardPx;
     g.fillStyle = rnd() < .5 ? 'rgba(60,40,20,.18)' : 'rgba(230,215,180,.14)';
     g.fillRect(x, y, 1.6, 1.6);
   }
   // cross dividers at interior intersections
   var arm = cell * .32, w = cell * .13;
   for (var r = 1; r < N; r++) for (var c = 1; c < N; c++) {
-    var px = frame + c * cell, py = frame + r * cell;
+    var px = ox + c * cell, py = oy + r * cell;
     g.fillStyle = '#c8a878';
     g.fillRect(px - arm, py - w / 2 - 1, arm * 2, w);
     g.fillRect(px - w / 2 - 1, py - arm, w, arm * 2);
@@ -407,8 +422,8 @@ function buildBackground(full){
   // faint cell mesh
   g.strokeStyle = 'rgba(255,255,255,.10)'; g.lineWidth = 1;
   for (var k = 0; k <= N; k++) {
-    g.beginPath(); g.moveTo(frame + k * cell, frame); g.lineTo(frame + k * cell, frame + boardPx); g.stroke();
-    g.beginPath(); g.moveTo(frame, frame + k * cell); g.lineTo(frame + boardPx, frame + k * cell); g.stroke();
+    g.beginPath(); g.moveTo(ox + k * cell, oy); g.lineTo(ox + k * cell, oy + boardPx); g.stroke();
+    g.beginPath(); g.moveTo(ox, oy + k * cell); g.lineTo(ox + boardPx, oy + k * cell); g.stroke();
   }
 }
 function drawClover(g, x, y, s, rot, leaves, rnd){
@@ -773,11 +788,11 @@ function drawTubes(g){
 function markCell(g, r, c, col){
   g.strokeStyle = col; g.lineWidth = 3;
   g.shadowColor = col; g.shadowBlur = 9;
-  rrect(g, frame + c * cell + 2.5, frame + r * cell + 2.5, cell - 5, cell - 5, 7);
+  rrect(g, ox + c * cell + 2.5, oy + r * cell + 2.5, cell - 5, cell - 5, 7);
   g.stroke(); g.shadowBlur = 0;
 }
 function drawLogo(g){
-  var midX = frame + boardPx / 2, midY = frame + boardPx / 2;
+  var midX = ox + boardPx / 2, midY = oy + boardPx / 2;
   g.save(); g.textAlign = 'center'; g.textBaseline = 'middle';
   g.font = 'italic 900 ' + Math.round(cell * 1.55) + 'px "Arial Rounded MT Bold","Trebuchet MS",sans-serif';
   g.lineWidth = cell * .28; g.strokeStyle = '#fff';
@@ -814,7 +829,7 @@ function render(){
     if (fk >= 1) { flashes.splice(i, 1); continue; }
     ctx.save(); ctx.globalAlpha = 1 - fk;
     ctx.strokeStyle = '#e82818'; ctx.lineWidth = 3.5;
-    var x0 = frame + f.c * cell + 4, y0 = frame + f.r * cell + 4, w = cell - 8;
+    var x0 = ox + f.c * cell + 4, y0 = oy + f.r * cell + 4, w = cell - 8;
     ctx.strokeRect(x0, y0, w, w);
     ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + w, y0 + w);
     ctx.moveTo(x0 + w, y0); ctx.lineTo(x0, y0 + w);
@@ -851,7 +866,7 @@ function render(){
     else {
       var pop = sk < .15 ? easeOut(sk / .15) : 1, fade = sk > .75 ? 1 - (sk - .75) / .25 : 1;
       ctx.save(); ctx.globalAlpha = fade;
-      ctx.translate(frame + boardPx / 2, frame + boardPx / 2); ctx.scale(pop, pop);
+      ctx.translate(ox + boardPx / 2, oy + boardPx / 2); ctx.scale(pop, pop);
       ctx.font = '900 ' + Math.round(cell * .95) + 'px "Arial Rounded MT Bold",sans-serif';
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.lineWidth = 8; ctx.strokeStyle = 'rgba(15,60,10,.9)'; ctx.strokeText(splash.text, 0, 0);
@@ -880,8 +895,8 @@ function loop(){
 // ============================================================ input
 function evCell(x, y){
   var rect = cv.getBoundingClientRect();
-  var c = Math.floor((x - rect.left - frame) / cell);
-  var r = Math.floor((y - rect.top - frame) / cell);
+  var c = Math.floor((x - rect.left - ox) / cell);
+  var r = Math.floor((y - rect.top - oy) / cell);
   return (r >= 0 && c >= 0 && r < N && c < N) ? { r:r, c:c } : null;
 }
 function onTap(x, y){
@@ -941,7 +956,8 @@ window.__mc = {
   get chain(){ return chain; }, get round(){ return round; }, get timeLeft(){ return timeLeft; },
   tap: tapCell, endChain: endChain, connect: connect, hasAnyLink: hasAnyLink,
   newGame: newGame, chainValue: chainValue,
-  setTime: function(s){ timeLeft = s; }
+  setTime: function(s){ timeLeft = s; },
+  geom: function(){ return { cell: cell, ox: ox, oy: oy }; }
 };
 })();
 </script>
